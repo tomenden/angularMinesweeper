@@ -1,0 +1,21 @@
+.hero-unit(ng-controller="MainController as main")
+  %h1
+    {{'general.YO' | translate}}
+    %i.logo-on-header.angular-minesweeper-svg-font-icons-wix-logo
+  %p You now have
+  %ul
+    %li(ng-repeat="thing in main.awesomeThings") {{thing}}
+  %p installed.
+  %p
+    This project uses wix-style bower component. that means that you can easily implement html components with simple classes such as
+    %p
+      %a.btn-default btn-default
+      or
+      %a.btn-primary btn-default-primary
+    %p
+      and many more features. along with plenty of SASS variables, mixins and svgfont icon that you can use
+  %p
+    Just visit
+    %a.wix-style-link.wix-svg-font-icons-check.btn-borderless(href="bower_components/wix-style/dist/index.html") wix style demo page
+    and check all the features you can use.
+  %h3 Enjoy coding! - Yeoman
