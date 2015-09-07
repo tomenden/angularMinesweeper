@@ -12,8 +12,17 @@ describe('Factory: Game', function () {
     game = new Game();
   }));
 
-  it('should do something', function () {
-    expect(game.someMethod()).toBe(42);
+  it('should return a 4*4 board', function () {
+    var gameConf = {
+      rows: 4,
+      cols: 4
+    };
+    game.generateBoard(gameConf);
+    var board = game.getBoard();
+    expect(board.length).toBe(4);
+    _.forEach(board, function (row) {
+      expect(row.length).toBe(4);
+    });
   });
 
 });
