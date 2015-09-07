@@ -25,4 +25,22 @@ describe('Factory: Game', function () {
     });
   });
 
+  it('should create a 5*5 board with 3 mines and 22 free cells', function () {
+    var count;
+    var gameConf = {
+      rows: 5,
+      cols: 5,
+      mines: 3
+    };
+    game.generateBoard(gameConf);
+    var board = game.getBoard();
+    count = _(board)
+      .flatten()
+      .countBy()
+      .value();
+
+    expect(count.X).toBe(3);
+    expect(count['-']).toBe(22);
+  });
+
 });
