@@ -4,71 +4,126 @@
 
   /* @ngInject */
   function GameFactory() {
-    function Game() {
+    /**
+     *
+     * @param gameConf Object: {rows:number, cols:number, mines:number}
+     */
+    function Game(gameConf) {
+      gameConf = gameConf || {rows: 1, cols: 3, mines: 1};
       var board;
+      var gameStatus = {
+        ended: false,
+        result: 0
+      };
+      var unrevealedClearCellsCount;
 
-      function isValidCell(row, col) {
-        return board[row] && board[row][col];
+      function isValidCellCoordinates(x, y) {
+        //return board[y] && board[y][x];
+        return _.has(board, 'y.x');
       }
 
       function getBoard() {
         return board;
       }
 
-      function getCell(row, col) {
-        var cellContent = board[row][col];
-        return {
-          isMine: function () {
-            return cellContent === 'X';
-          },
-          getNeighbors: function () {
-            var neighbors = [];
-            var possibleRows = [row - 1, row, row + 1];
-            var possibleCols = [col - 1, col, col + 1];
 
-            _.forEach(possibleRows, function (currentRow) {
-              _.forEach(possibleCols, function (currentCol) {
-                if (isValidCell(currentRow, currentCol)) {
-                  neighbors.push(getCell(currentRow, currentCol));
-                }
-              });
-            });
-
-            return neighbors;
-          }
-        };
+      function getNeighborsFromCoordinates(x, y) {
+        var possibleRows = [y, y + 1, y - 1];
+        var possibleCols = [x, x + 1, x - 1];
+        var neighbors = [];
+        //TODO: consider refactoring this and decide between working with multi-dimensional array vs. flat
+        _.forEach(possibleRows, function (row) {
+          _.forEach(possibleCols, function (col) {
+            if (isValidCellCoordinates(col, row) && !(col === x && row === y)) {
+              neighbors.push(board[x][y]);
+            }
+            //if ((col === x && row === y) ||
+            //  col < 0 || row < 0 ||
+            //  row > gameConf.rows ||
+            //  col > gameConf.cols) {
+            //  return;
+            //}
+            //var candidateIndex = getIndexFromCoordinates(col, row);
+            //if (isValidCellCoordinates(candidateIndex)) {
+            //  neighborsIndices.push(board[candidateIndex]);
+            //}
+          });
+        });
+        return neighbors;
       }
 
-      function reveal(row, col) {
-        var cell = getCell(row, col);
-        if (cell.isMine()) {
-          console.log('you lose');
+      //function getNeighbors(cellIndex) {
+      //  var possibleOffsets = [-1, 1, -gameConf.cols + 1, -gameConf.cols, -gameConf.cols - 1, gameConf.cols, gameConf.cols - 1, gameConf.cols + 1];
+      //  return _(possibleOffsets).map(function (offset) {
+      //    var candidateIndex = cellIndex + offset;
+      //    return  isValidIndex(candidateIndex) ?
+      //      candidateIndex :
+      //      null;
+      //  }).compact().value();
+      //}
+
+      //function getIndexFromCoordinates(x, y) {
+      //  return x + (y * gameConf.cols);
+      //}
+
+      function reveal(x, y) {
+        //var cellIndex = getIndexFromCoordinates(x, y);
+        var cell = board[y][x];
+        var neighbors, neighborMinesCount;
+        cell.revealed = true;
+        if (cell.mine) {
+          gameStatus.ended = true;
+          gameStatus.result = -1;
+          return 'You lose';
+        } else {
+          if (unrevealedClearCellsCount === 1) {
+            unrevealedClearCellsCount--;
+            gameStatus.ended = true;
+            gameStatus.result = 1;
+            return 'You won!';
+          }
+          unrevealedClearCellsCount--;
+          neighbors = getNeighborsFromCoordinates(x, y);
+          neighborMinesCount = _.countBy(neighbors, 'mine').true || 0;
+          if (neighborMinesCount === 0) {
+            _.forEach(neighbors, function (cell) {
+              reveal(cell);
+            });
+          } else {
+            return neighborMinesCount;
+          }
         }
       }
 
-      /**
-       *
-       * @param gameConf Object: {rows:number, cols:number, mines:number}
-       */
-      function generateBoard(gameConf) {
+      function getGameStatus() {
+        return gameStatus;
+      }
+
+
+      function generateBoard(minesFlatIndices) {
         var totalNumberOfCells = gameConf.rows * gameConf.cols;
-        var clearCells = _.range(totalNumberOfCells);
-        var minesCells = [];
-        _.times(gameConf.mines, function () {
-          clearCells = _.shuffle(clearCells);
-          minesCells.push(clearCells.pop());
-        });
-        board = _(totalNumberOfCells).times(function (currentCell) {
-          return _.includes(minesCells, currentCell) ? 'X' : '-';
+        var allCellsIndices = _.range(totalNumberOfCells);
+        minesFlatIndices = minesFlatIndices || _(allCellsIndices).shuffle().slice(0, gameConf.mines).value();
+        board = _(allCellsIndices).map(function (index) {
+          var cell = {
+            mine: false,
+            flagged: false,
+            revealed: false
+          };
+          if (_.includes(minesFlatIndices, index)) {
+            cell.mine = true;
+          }
+          return cell;
         })
           .chunk(gameConf.cols)
           .value();
+        unrevealedClearCellsCount = totalNumberOfCells - gameConf.mines;
       }
 
       this.generateBoard = generateBoard;
       this.getBoard = getBoard;
       this.reveal = reveal;
-      this.getCell = getCell;
+      this.getGameStatus = getGameStatus;
     }
 
     return Game;
