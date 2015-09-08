@@ -68,6 +68,7 @@
       this.generateBoard = generateBoard;
       this.getBoard = getBoard;
       this.reveal = reveal;
+      this.getCell = getCell;
     }
 
     return Game;
