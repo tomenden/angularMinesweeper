@@ -4,6 +4,8 @@
 
   /* @ngInject */
   function GameFactory() {
+
+
     /**
      *
      * @param gameConf Object: {rows:number, cols:number, mines:number}
@@ -18,8 +20,8 @@
       var unrevealedClearCellsCount;
 
       function isValidCellCoordinates(x, y) {
-        //return board[y] && board[y][x];
-        return _.has(board, 'y.x');
+        return !!(board[y] && board[y][x]);
+        //return _.has(board, 'y.x');
       }
 
       function getBoard() {
@@ -27,67 +29,59 @@
       }
 
 
-      function getNeighborsFromCoordinates(x, y) {
+      function getNeighborsCoordinates(x, y) {
         var possibleRows = [y, y + 1, y - 1];
         var possibleCols = [x, x + 1, x - 1];
-        var neighbors = [];
+        var neighborsCoordinates = [];
         //TODO: consider refactoring this and decide between working with multi-dimensional array vs. flat
         _.forEach(possibleRows, function (row) {
           _.forEach(possibleCols, function (col) {
             if (isValidCellCoordinates(col, row) && !(col === x && row === y)) {
-              neighbors.push(board[x][y]);
+              neighborsCoordinates.push({
+                x: col,
+                y: row
+              });
             }
-            //if ((col === x && row === y) ||
-            //  col < 0 || row < 0 ||
-            //  row > gameConf.rows ||
-            //  col > gameConf.cols) {
-            //  return;
-            //}
-            //var candidateIndex = getIndexFromCoordinates(col, row);
-            //if (isValidCellCoordinates(candidateIndex)) {
-            //  neighborsIndices.push(board[candidateIndex]);
-            //}
           });
         });
-        return neighbors;
+        return neighborsCoordinates;
       }
 
-      //function getNeighbors(cellIndex) {
-      //  var possibleOffsets = [-1, 1, -gameConf.cols + 1, -gameConf.cols, -gameConf.cols - 1, gameConf.cols, gameConf.cols - 1, gameConf.cols + 1];
-      //  return _(possibleOffsets).map(function (offset) {
-      //    var candidateIndex = cellIndex + offset;
-      //    return  isValidIndex(candidateIndex) ?
-      //      candidateIndex :
-      //      null;
-      //  }).compact().value();
-      //}
 
-      //function getIndexFromCoordinates(x, y) {
-      //  return x + (y * gameConf.cols);
-      //}
+      function isLastClearCell() {
+        return unrevealedClearCellsCount === 1;
+      }
 
+      //todo: refactor
       function reveal(x, y) {
-        //var cellIndex = getIndexFromCoordinates(x, y);
         var cell = board[y][x];
-        var neighbors, neighborMinesCount;
+        var neighbors, neighborsCoordinates, neighborMinesCount;
+        if (cell.flagged === true) {
+          return;
+        }
         cell.revealed = true;
-        if (cell.mine) {
+        if (cell.mine === true) {
           gameStatus.ended = true;
           gameStatus.result = -1;
           return 'You lose';
         } else {
-          if (unrevealedClearCellsCount === 1) {
+          if (isLastClearCell()) {
             unrevealedClearCellsCount--;
             gameStatus.ended = true;
             gameStatus.result = 1;
             return 'You won!';
           }
           unrevealedClearCellsCount--;
-          neighbors = getNeighborsFromCoordinates(x, y);
+          neighborsCoordinates = getNeighborsCoordinates(x, y);
+          neighbors = _.map(neighborsCoordinates, function (coordinates) {
+            return board[coordinates.y][coordinates.x];
+          });
           neighborMinesCount = _.countBy(neighbors, 'mine').true || 0;
           if (neighborMinesCount === 0) {
-            _.forEach(neighbors, function (cell) {
-              reveal(cell);
+            _.forEach(neighborsCoordinates, function (coordinates, index) {
+              if (neighbors[index].revealed = false) {
+                reveal(coordinates.x, coordinates.y);
+              }
             });
           } else {
             return neighborMinesCount;
@@ -99,6 +93,11 @@
         return gameStatus;
       }
 
+      function toggleFlag(x, y) {
+        if (isValidCellCoordinates(x, y)) {
+          board[y][x].flagged = true;
+        }
+      }
 
       function generateBoard(minesFlatIndices) {
         var totalNumberOfCells = gameConf.rows * gameConf.cols;
@@ -124,6 +123,7 @@
       this.getBoard = getBoard;
       this.reveal = reveal;
       this.getGameStatus = getGameStatus;
+      this.toggleFlag = toggleFlag;
     }
 
     return Game;

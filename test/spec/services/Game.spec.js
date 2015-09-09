@@ -1,5 +1,5 @@
 'use strict';
-
+//TODO: refactor all tests
 describe('Factory: Game', function () {
   // load the factory's module
   beforeEach(function () {
@@ -86,5 +86,13 @@ describe('Factory: Game', function () {
       });
       expect(_.every(neighborsCoordinates, 'revealed', false)).toBe(true);
     });
+    it('should not reveal a flagged cell', function() {
+      game.generateBoard();
+      board = game.getBoard();
+      game.toggleFlag(0, 0);
+      expect(board[0][0].flagged).toBe(true);
+      game.reveal(0, 0);
+      expect(board[0][0].revealed).toBe(false);
+    })
   });
 });
