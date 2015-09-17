@@ -1,0 +1,13 @@
+<div>
+    <table ng-show="gameCtrl.inProgress" class="game-table">
+        <tr class="rows" ng-repeat="row in gameCtrl.board" ng-init="y = $index">
+            <td class="cols game-cell"
+                ng-repeat="cell in row" ng-init="x = $index"
+                ng-class="{'flagged': cell.flagged, 'revealed': cell.revealed, 'mine': cell.revealed && cell.mine}"
+                ng-click="gameCtrl.reveal(x, y)"
+                right-click="gameCtrl.toggleFlag(x, y)">
+                <span ng-if="cell.revealed && !cell.mine">{{cell.neighborMinesCount}}</span>
+            </td>
+        </tr>
+    </table>
+</div>

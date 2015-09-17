@@ -17,7 +17,7 @@
         ended: false,
         result: 0
       };
-      var unrevealedClearCellsCount;
+      var unrevealedClearCellsCount = gameConf.rows * gameConf.cols - gameConf.mines;
 
       function isValidCellCoordinates(x, y) {
         return !!(board[y] && board[y][x]);
@@ -27,7 +27,6 @@
       function getBoard() {
         return board;
       }
-
 
       function getNeighborsCoordinates(x, y) {
         var possibleRows = [y, y + 1, y - 1];
@@ -47,45 +46,53 @@
         return neighborsCoordinates;
       }
 
-
-      function isLastClearCell() {
-        return unrevealedClearCellsCount === 1;
+      function isWin() {
+        return unrevealedClearCellsCount === 0 && gameStatus.result === 0;
       }
 
-      //todo: refactor
-      function reveal(x, y) {
+      function loseGame() {
+        gameStatus.ended = true;
+        gameStatus.result = -1;
+      }
+
+      function winGame() {
+        gameStatus.ended = true;
+        gameStatus.result = 1;
+      }
+
+      function getCellFromCoordinatesObject(coordinates) {
+        return board[coordinates.y][coordinates.x];
+      }
+
+      function revealCoordinatesArray(coordinatesArray) {
+        _.forEach(coordinatesArray, function (coordinates) {
+            reveal(coordinates.x, coordinates.y);
+        });
+      }
+
+      function revealPropagation(x, y) {
         var cell = board[y][x];
         var neighbors, neighborsCoordinates, neighborMinesCount;
-        if (cell.flagged === true) {
-          return;
+        neighborsCoordinates = getNeighborsCoordinates(x, y);
+        neighbors = _.map(neighborsCoordinates, getCellFromCoordinatesObject);
+        neighborMinesCount = _.countBy(neighbors, 'mine').true || 0;
+        if (neighborMinesCount === 0) {
+          revealCoordinatesArray(neighborsCoordinates);
         }
-        cell.revealed = true;
-        if (cell.mine === true) {
-          gameStatus.ended = true;
-          gameStatus.result = -1;
-          return 'You lose';
-        } else {
-          if (isLastClearCell()) {
-            unrevealedClearCellsCount--;
-            gameStatus.ended = true;
-            gameStatus.result = 1;
-            return 'You won!';
-          }
+        cell.neighborMinesCount = neighborMinesCount;
+      }
+
+      function reveal(x, y) {
+        var cell = board[y][x];
+        if (!cell.flagged && !cell.revealed){
+          cell.revealed = true;
           unrevealedClearCellsCount--;
-          neighborsCoordinates = getNeighborsCoordinates(x, y);
-          neighbors = _.map(neighborsCoordinates, function (coordinates) {
-            return board[coordinates.y][coordinates.x];
-          });
-          neighborMinesCount = _.countBy(neighbors, 'mine').true || 0;
-          if (neighborMinesCount === 0) {
-            _.forEach(neighborsCoordinates, function (coordinates, index) {
-              if (neighbors[index].revealed = false) {
-                reveal(coordinates.x, coordinates.y);
-              }
-            });
+          if (cell.mine) {
+            loseGame();
           } else {
-            return neighborMinesCount;
+            revealPropagation(x, y);
           }
+
         }
       }
 
@@ -94,8 +101,9 @@
       }
 
       function toggleFlag(x, y) {
-        if (isValidCellCoordinates(x, y)) {
-          board[y][x].flagged = true;
+        if (isValidCellCoordinates(x, y) && board[y][x].revealed === false) {
+          var cell = board[y][x];
+          cell.flagged = !cell.flagged;
         }
       }
 
@@ -116,12 +124,17 @@
         })
           .chunk(gameConf.cols)
           .value();
-        unrevealedClearCellsCount = totalNumberOfCells - gameConf.mines;
+        //unrevealedClearCellsCount = totalNumberOfCells - gameConf.mines;
       }
 
       this.generateBoard = generateBoard;
       this.getBoard = getBoard;
-      this.reveal = reveal;
+      this.reveal = function (x,y){
+        reveal(x,y);
+        if (isWin()) {
+          winGame();
+        }
+      };
       this.getGameStatus = getGameStatus;
       this.toggleFlag = toggleFlag;
     }

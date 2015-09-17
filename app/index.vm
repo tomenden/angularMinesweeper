@@ -66,6 +66,8 @@
     <script src="views/main.html.js"></script>
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/services/Game.js"></script>
+    <script src="scripts/directives/rightClick.js"></script>
+    <script src="scripts/controllers/Game.js"></script>
     <!-- endbuild --><!-- scripts -->
     <!-- end-process-tags -->
 

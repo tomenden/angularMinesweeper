@@ -81,10 +81,10 @@ describe('Factory: Game', function () {
       board = game.getBoard();
       var coordinates = getCoordinatesFromIndex(0);
       game.reveal(coordinates.x, coordinates.y);
-      var neighborsCoordinates = [{y: 0, x: 1}, {y: 1, x: 0}, {y: 1, x: 1}].map(function (coordinates) {
+      var neighborCells = [{y: 0, x: 1}, {y: 1, x: 0}, {y: 1, x: 1}].map(function (coordinates) {
         return board[coordinates.y][coordinates.x];
       });
-      expect(_.every(neighborsCoordinates, 'revealed', false)).toBe(true);
+      expect(_.every(neighborCells, 'revealed', true)).toBe(true);
     });
     it('should not reveal a flagged cell', function() {
       game.generateBoard();

@@ -1,0 +1,17 @@
+<h1>Minesweeper Game</h1>
+
+<form id="game-configurations">
+    <div class="form-field-block">
+        <label for="rows">Choose the number of rows:</label>
+        <input type="number" required ng-model="gameConf.rows" value="{{gameConf.rows}}" id="rows"/>
+    </div>
+    <div class="form-field-block">
+        <label for="cols">Choose the number of columns:</label>
+        <input type="number" required ng-model="gameConf.cols" value="{{gameConf.cols}}" id="cols"/>
+    </div>
+    <div class="form-field-block">
+        <label for="mines">Choose the number of mines:</label>
+        <input type="number" required ng-model="gameConf.mines" value="{{gameConf.mines}}" id="mines"/>
+    </div>
+    <button id="start-game-btn" ng-click="gameCtrl.startGame()">Start a new game</button>
+</form>

@@ -1,0 +1,29 @@
+.form-field-block {
+  display: block;
+}
+
+
+.game-table {
+  border-spacing: 0;
+}
+
+.game-cell {
+  width: 1rem;
+  height: 1rem;
+  text-align: center;
+
+  &:not(.flagged) {
+      background: image-url('Minesweeper_background.svg');
+      background-size: cover;
+  }
+  &.flagged {
+    background: image-url('flag.svg');
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+  &.revealed.mine {
+    background: image-url('mine.svg');
+    -webkit-background-size: cover;
+    background-size: cover;
+  }
+}
